@@ -5,6 +5,8 @@ const storageKeys = {
   settings: "bas2048-settings",
 };
 
+const DEFAULT_STATS_ENDPOINT = "https://functions.yandexcloud.net/d4e7o4lrrdik7i8kuur6/stats";
+
 const defaultSettings = {
   size: 4,
   dark: false,
@@ -12,6 +14,7 @@ const defaultSettings = {
   animations: true,
   sounds: false,
   cloudEndpoint: "",
+  statsEndpoint: DEFAULT_STATS_ENDPOINT,
 };
 
 const defaultStats = {
@@ -480,6 +483,16 @@ function handleMove(dir) {
     stats.maxStreak = Math.max(stats.maxStreak, stats.streak);
     stats.bestTile = Math.max(stats.bestTile, maxTile);
     updateStatusOverlay({ title: "Победа!", sub: "Можно продолжить повышать результат." });
+    pushStatsToApi({
+      name: dom.nickname.value.trim() || "Гость",
+      score: game.score,
+      size: game.size,
+      seed: game.seed,
+      maxTile,
+      streak: stats.streak,
+      gamesPlayed: stats.gamesPlayed,
+      ts: Date.now(),
+    });
   }
 
   if (result.over && !game.counted) {
@@ -487,6 +500,16 @@ function handleMove(dir) {
     stats.streak = 0;
     game.counted = true;
     updateStatusOverlay({ title: "Ходов больше нет", sub: "Попробуй еще раз — отмена хода помогает." });
+    pushStatsToApi({
+      name: dom.nickname.value.trim() || "Гость",
+      score: game.score,
+      size: game.size,
+      seed: game.seed,
+      maxTile,
+      streak: stats.streak,
+      gamesPlayed: stats.gamesPlayed,
+      ts: Date.now(),
+    });
   }
 
   if (settings.sounds) {
@@ -603,6 +626,7 @@ function addScoreToLeaderboard(name, score) {
   saveStorage(storageKeys.leaderboard, leaderboard);
   renderLeaderboard();
   pushCloudScore(entry);
+  pushStatsToApi({ ...entry, maxTile: currentMaxTile(), streak: stats.streak, gamesPlayed: stats.gamesPlayed });
 }
 
 function renderLeaderboard() {
@@ -680,6 +704,19 @@ async function pushCloudScore(entry) {
   }
 }
 
+async function pushStatsToApi(entry) {
+  if (!settings.statsEndpoint) return;
+  try {
+    await fetch(settings.statsEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entry),
+    });
+  } catch (err) {
+    console.warn("Не удалось отправить статистику", err);
+  }
+}
+
 function mergeLeaderboards(local, remote) {
   const map = new Map();
   [...local, ...remote].forEach((row) => {
@@ -695,9 +732,15 @@ function configureApi() {
   );
   if (value !== null) {
     settings.cloudEndpoint = value.trim();
-    saveStorage(storageKeys.settings, settings);
-    fetchCloudLeaderboard();
   }
+  const statsUrl = prompt(
+    "URL API статистики (POST принимает {name,score,size,seed,maxTile,streak,gamesPlayed,ts}). Это должен быть ваш сервер/функция с доступом к PostgreSQL."
+  );
+  if (statsUrl !== null) {
+    settings.statsEndpoint = statsUrl.trim();
+  }
+  saveStorage(storageKeys.settings, settings);
+  fetchCloudLeaderboard();
 }
 
 function bindControls() {
@@ -808,6 +851,7 @@ function initFromURL(params = new URLSearchParams(window.location.search)) {
 function init() {
   setupDom();
   settings = { ...defaultSettings, ...loadStorage(storageKeys.settings, {}) };
+  if (!settings.statsEndpoint) settings.statsEndpoint = DEFAULT_STATS_ENDPOINT;
   stats = { ...defaultStats, ...loadStorage(storageKeys.stats, {}) };
   leaderboard = loadStorage(storageKeys.leaderboard, []);
   applySettingsToUI();
