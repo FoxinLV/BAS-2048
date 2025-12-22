@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BAS 2048 — продвинутая версия</title>
+  <title>Foxin 2048</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -27,6 +28,10 @@
       </div>
       <div class="hero-stats inline">
         <div class="stat-card">
+          <p>Таймер</p>
+          <div class="stat-value" id="timerValue">00:00</div>
+        </div>
+        <div class="stat-card">
           <p>Счет</p>
           <div class="stat-value" id="scoreValue">0</div>
         </div>
@@ -37,10 +42,6 @@
         <div class="stat-card">
           <p>Макс. плитка</p>
           <div class="stat-value" id="maxTileValue">0</div>
-        </div>
-        <div class="stat-card">
-          <p>Таймер</p>
-          <div class="stat-value" id="timerValue">00:00</div>
         </div>
       </div>
     </header>

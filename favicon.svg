@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="2048 tile">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop stop-color="#edc22e" offset="0%"/>
+      <stop stop-color="#e69d2e" offset="100%"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="12" fill="url(#g)" stroke="#d48a1f" stroke-width="2"/>
+  <text x="50%" y="55%" fill="#fdfaf2" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">2048</text>
+</svg>
