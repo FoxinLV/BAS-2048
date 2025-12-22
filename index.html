@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BAS 2048 — продвинутая версия</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="atmosphere">
+    <div class="blob blob-a"></div>
+    <div class="blob blob-b"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <div class="app-shell">
+    <header class="hero">
+      <div class="hero-text">
+        <span class="pill">2048 / Re:charged</span>
+        <h1>Собери 2048 и выше, попади в рейтинг, делись ссылкой</h1>
+        <p>Продвинутый геймплей: отмена ходов, дневные испытания, аналитика и заготовка для общего рейтинга. Готово для публикации на GitHub Pages.</p>
+        <div class="cta-row">
+          <button class="btn primary" id="newGameBtn">Новая игра</button>
+          <button class="btn ghost" id="dailyBtn">Дневное испытание</button>
+          <button class="btn ghost" id="undoBtn">Отменить ход</button>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-card">
+          <p>Счет</p>
+          <div class="stat-value" id="scoreValue">0</div>
+        </div>
+        <div class="stat-card">
+          <p>Рекорд</p>
+          <div class="stat-value" id="bestValue">0</div>
+        </div>
+        <div class="stat-card">
+          <p>Серия</p>
+          <div class="stat-value" id="streakValue">0</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="board-area">
+        <div class="top-bar">
+          <div class="control">
+            <label for="sizeRange">Размер поля: <span id="sizeLabel">4×4</span></label>
+            <input type="range" min="3" max="6" value="4" id="sizeRange">
+          </div>
+          <div class="control inline">
+            <label class="switch">
+              <input type="checkbox" id="assistToggle" checked>
+              <span class="slider"></span>
+            </label>
+            <span>Подсказывать следующий спавн</span>
+          </div>
+          <div class="control inline">
+            <label class="switch">
+              <input type="checkbox" id="darkToggle">
+              <span class="slider"></span>
+            </label>
+            <span>Тёмная тема</span>
+          </div>
+        </div>
+
+        <div class="board-wrapper">
+          <div class="board" id="board" data-size="4">
+            <div class="grid" id="grid"></div>
+            <div class="tiles" id="tiles"></div>
+            <div class="status-layer" id="statusLayer">
+              <div class="status-card hidden" id="statusCard">
+                <p class="status-title" id="statusTitle"></p>
+                <p class="status-sub" id="statusSub"></p>
+                <div class="status-actions">
+                  <button class="btn primary" id="continueBtn">Еще ход</button>
+                  <button class="btn ghost" id="resetBtn">Заново</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="meta">
+          <div class="meta-card">
+            <p class="meta-label">Следующая плитка</p>
+            <div class="next-tile" id="nextTile">2</div>
+          </div>
+          <div class="meta-card">
+            <p class="meta-label">Дневная задача</p>
+            <p id="dailyInfo">Нажми «Дневное испытание», чтобы сыграть на общем семени.</p>
+          </div>
+          <div class="meta-card">
+            <p class="meta-label">Горячие клавиши</p>
+            <p>←↑→↓ или WASD, свайпы на тач.</p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="overline">Рейтинг</p>
+              <h3>Таблица лидеров</h3>
+            </div>
+            <div class="panel-actions">
+              <button class="btn ghost small" id="refreshLbBtn">Обновить</button>
+              <button class="btn ghost small" id="configureApiBtn">API</button>
+            </div>
+          </div>
+          <div class="leaderboard" id="leaderboard"></div>
+          <div class="leaderboard-form">
+            <input type="text" id="nicknameInput" placeholder="Ник">
+            <button class="btn primary" id="submitScoreBtn">В рейтинг</button>
+          </div>
+          <p class="tiny">Общий рейтинг подключается через ваше API (кнопка «API»). Без API результаты остаются локально, доступны экспорт/импорт.</p>
+          <div class="export-row">
+            <button class="btn ghost small" id="exportBtn">Экспорт JSON</button>
+            <button class="btn ghost small" id="importBtn">Импорт JSON</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <p class="overline">Аналитика</p>
+            <h3>Сводка</h3>
+          </div>
+          <ul class="summary" id="summaryList"></ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <p class="overline">Опции</p>
+            <h3>Настройки</h3>
+          </div>
+          <div class="control inline">
+            <label class="switch">
+              <input type="checkbox" id="animToggle" checked>
+              <span class="slider"></span>
+            </label>
+            <span>Анимации</span>
+          </div>
+          <div class="control inline">
+            <label class="switch">
+              <input type="checkbox" id="soundToggle">
+              <span class="slider"></span>
+            </label>
+            <span>Звуки</span>
+          </div>
+          <div class="control">
+            <label>Шаринг</label>
+            <div class="share-row">
+              <input type="text" id="shareLink" readonly>
+              <button class="btn ghost small" id="copyShareBtn">Копировать</button>
+            </div>
+            <p class="tiny">Ссылка кодирует размер поля и семя игры.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="footer">
+      <p>Готово к публикации на GitHub Pages: просто пушь в публичный репозиторий и открой <code>https://username.github.io/</code>.</p>
+      <p>Код без сборки: <code>index.html</code>, <code>styles.css</code>, <code>main.js</code>.</p>
+    </footer>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
