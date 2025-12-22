@@ -20,10 +20,9 @@
       <div class="hero-text">
         <span class="pill">2048 / Re:charged</span>
         <h1>Собери 2048 и выше, попади в рейтинг, делись ссылкой</h1>
-        <p>Продвинутый геймплей: отмена ходов, дневные испытания, аналитика и заготовка для общего рейтинга. Готово для публикации на GitHub Pages.</p>
+        <p>Продвинутый геймплей: отмена ходов, подсказка спавна, аналитика и локальный рейтинг. Готово для публикации на GitHub Pages.</p>
         <div class="cta-row">
           <button class="btn primary" id="newGameBtn">Новая игра</button>
-          <button class="btn ghost" id="dailyBtn">Дневное испытание</button>
           <button class="btn ghost" id="undoBtn">Отменить ход</button>
         </div>
       </div>
@@ -37,8 +36,12 @@
           <div class="stat-value" id="bestValue">0</div>
         </div>
         <div class="stat-card">
-          <p>Серия</p>
-          <div class="stat-value" id="streakValue">0</div>
+          <p>Макс. плитка</p>
+          <div class="stat-value" id="maxTileValue">0</div>
+        </div>
+        <div class="stat-card">
+          <p>Таймер</p>
+          <div class="stat-value" id="timerValue">00:00</div>
         </div>
       </div>
     </header>
@@ -89,8 +92,8 @@
             <div class="next-tile" id="nextTile">2</div>
           </div>
           <div class="meta-card">
-            <p class="meta-label">Дневная задача</p>
-            <p id="dailyInfo">Нажми «Дневное испытание», чтобы сыграть на общем семени.</p>
+            <p class="meta-label">Состояние</p>
+            <p id="dailyInfo">Свободная игра с общим семенем из ссылки.</p>
           </div>
           <div class="meta-card">
             <p class="meta-label">Горячие клавиши</p>
@@ -106,20 +109,11 @@
               <p class="overline">Рейтинг</p>
               <h3>Таблица лидеров</h3>
             </div>
-            <div class="panel-actions">
-              <button class="btn ghost small" id="refreshLbBtn">Обновить</button>
-              <button class="btn ghost small" id="configureApiBtn">API</button>
-            </div>
           </div>
           <div class="leaderboard" id="leaderboard"></div>
           <div class="leaderboard-form">
             <input type="text" id="nicknameInput" placeholder="Ник">
             <button class="btn primary" id="submitScoreBtn">В рейтинг</button>
-          </div>
-          <p class="tiny">Общий рейтинг подключается через ваше API (кнопка «API»). Без API результаты остаются локально, доступны экспорт/импорт.</p>
-          <div class="export-row">
-            <button class="btn ghost small" id="exportBtn">Экспорт JSON</button>
-            <button class="btn ghost small" id="importBtn">Импорт JSON</button>
           </div>
         </div>
 

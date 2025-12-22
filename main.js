@@ -5,16 +5,12 @@ const storageKeys = {
   settings: "bas2048-settings",
 };
 
-const DEFAULT_STATS_ENDPOINT = "https://functions.yandexcloud.net/d4e7o4lrrdik7i8kuur6/stats";
-
 const defaultSettings = {
   size: 4,
   dark: false,
   assist: true,
   animations: true,
   sounds: false,
-  cloudEndpoint: "",
-  statsEndpoint: DEFAULT_STATS_ENDPOINT,
 };
 
 const defaultStats = {
@@ -32,6 +28,8 @@ let leaderboard = [];
 let game;
 let historyStack = [];
 let audioCtx = null;
+let timerInterval = null;
+let elapsedMs = 0;
 
 class SeededRandom {
   constructor(seed) {
@@ -301,6 +299,29 @@ function randomSeed() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+function stopTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function startTimer() {
+  stopTimer();
+  elapsedMs = 0;
+  const start = Date.now();
+  timerInterval = setInterval(() => {
+    const now = Date.now();
+    elapsedMs = now - start;
+    renderTimer();
+  }, 1000);
+}
+
+function renderTimer() {
+  const totalSec = Math.floor(elapsedMs / 1000);
+  const m = String(Math.floor(totalSec / 60)).padStart(2, "0");
+  const s = String(totalSec % 60).padStart(2, "0");
+  dom.timerValue.textContent = `${m}:${s}`;
+}
+
 function ensureAudio() {
   if (!audioCtx) {
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -359,7 +380,8 @@ function setupDom() {
   dom.statusSub = qs("statusSub");
   dom.scoreValue = qs("scoreValue");
   dom.bestValue = qs("bestValue");
-  dom.streakValue = qs("streakValue");
+  dom.maxTileValue = qs("maxTileValue");
+  dom.timerValue = qs("timerValue");
   dom.nextTile = qs("nextTile");
   dom.sizeRange = qs("sizeRange");
   dom.sizeLabel = qs("sizeLabel");
@@ -423,7 +445,7 @@ function updateScoreboard() {
   dom.scoreValue.textContent = game.score;
   stats.bestScore = Math.max(stats.bestScore, game.score);
   dom.bestValue.textContent = stats.bestScore;
-  dom.streakValue.textContent = stats.streak;
+  dom.maxTileValue.textContent = currentMaxTile();
   saveStorage(storageKeys.stats, stats);
 }
 
@@ -436,7 +458,7 @@ function updateSummary() {
   const items = [
     `Игр сыграно: ${stats.gamesPlayed}`,
     `Максимальный счет: ${stats.bestScore}`,
-    `Лучшая плитка: ${stats.bestTile || 0}`,
+    `Лучшая плитка: ${Math.max(stats.bestTile, currentMaxTile())}`,
     `Максимальная серия побед: ${stats.maxStreak}`,
   ];
   dom.summaryList.innerHTML = items.map((i) => `<li>${i}</li>`).join("");
@@ -474,25 +496,14 @@ function handleMove(dir) {
   updateScoreboard();
   updateNextTile();
 
-  let counted = false;
   if (result.won && !game.counted) {
     stats.gamesPlayed += 1;
-    counted = true;
     game.counted = true;
     stats.streak += 1;
     stats.maxStreak = Math.max(stats.maxStreak, stats.streak);
     stats.bestTile = Math.max(stats.bestTile, maxTile);
     updateStatusOverlay({ title: "Победа!", sub: "Можно продолжить повышать результат." });
-    pushStatsToApi({
-      name: dom.nickname.value.trim() || "Гость",
-      score: game.score,
-      size: game.size,
-      seed: game.seed,
-      maxTile,
-      streak: stats.streak,
-      gamesPlayed: stats.gamesPlayed,
-      ts: Date.now(),
-    });
+    stopTimer();
   }
 
   if (result.over && !game.counted) {
@@ -500,16 +511,7 @@ function handleMove(dir) {
     stats.streak = 0;
     game.counted = true;
     updateStatusOverlay({ title: "Ходов больше нет", sub: "Попробуй еще раз — отмена хода помогает." });
-    pushStatsToApi({
-      name: dom.nickname.value.trim() || "Гость",
-      score: game.score,
-      size: game.size,
-      seed: game.seed,
-      maxTile,
-      streak: stats.streak,
-      gamesPlayed: stats.gamesPlayed,
-      ts: Date.now(),
-    });
+    stopTimer();
   }
 
   if (settings.sounds) {
@@ -549,6 +551,8 @@ function restoreState() {
     updateScoreboard();
     updateNextTile();
     updateSummary();
+    startTimer();
+    renderTimer();
     return true;
   }
   return false;
@@ -560,6 +564,8 @@ function startNewGame({ size, seed, label } = {}) {
   if (!seed) seed = randomSeed();
   game = new Game2048(newSize, seed);
   historyStack = [];
+  startTimer();
+  renderTimer();
   renderGrid(newSize);
   renderTiles(false);
   hideStatusOverlay();
@@ -580,16 +586,6 @@ function startNewGame({ size, seed, label } = {}) {
   }
 }
 
-function startDaily() {
-  const today = new Date();
-  const stamp = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
-    today.getDate()
-  ).padStart(2, "0")}`;
-  const seed = `daily-${stamp}`;
-  startNewGame({ seed, label: "Дневное испытание" });
-  qs("dailyInfo").textContent = `Семя дня: ${seed}. Поделись ссылкой, чтобы играть на одинаковом поле.`;
-}
-
 function applySettingsToUI() {
   dom.assistToggle.checked = settings.assist;
   dom.darkToggle.checked = settings.dark;
@@ -597,7 +593,7 @@ function applySettingsToUI() {
   dom.soundToggle.checked = settings.sounds;
   dom.sizeRange.value = settings.size;
   dom.sizeLabel.textContent = `${settings.size}×${settings.size}`;
-  document.body.classList.toggle("light", !settings.dark);
+  document.body.classList.toggle("dark", settings.dark);
 }
 
 function updateShareLink(seed = game?.seed) {
@@ -625,8 +621,6 @@ function addScoreToLeaderboard(name, score) {
   leaderboard = leaderboard.slice(0, 20);
   saveStorage(storageKeys.leaderboard, leaderboard);
   renderLeaderboard();
-  pushCloudScore(entry);
-  pushStatsToApi({ ...entry, maxTile: currentMaxTile(), streak: stats.streak, gamesPlayed: stats.gamesPlayed });
 }
 
 function renderLeaderboard() {
@@ -648,99 +642,6 @@ function renderLeaderboard() {
     `;
     dom.leaderboard.appendChild(el);
   });
-}
-
-function exportLeaderboard() {
-  const blob = new Blob([JSON.stringify(leaderboard, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "leaderboard.json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importLeaderboard() {
-  const data = prompt("Вставь JSON экспорта рейтинга:");
-  if (!data) return;
-  try {
-    const parsed = JSON.parse(data);
-    if (Array.isArray(parsed)) {
-      leaderboard = parsed;
-      saveStorage(storageKeys.leaderboard, leaderboard);
-      renderLeaderboard();
-    }
-  } catch (e) {
-    alert("Не удалось прочитать JSON");
-  }
-}
-
-async function fetchCloudLeaderboard() {
-  if (!settings.cloudEndpoint) return;
-  try {
-    const res = await fetch(settings.cloudEndpoint, { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    if (Array.isArray(data)) {
-      leaderboard = mergeLeaderboards(leaderboard, data);
-      saveStorage(storageKeys.leaderboard, leaderboard);
-      renderLeaderboard();
-    }
-  } catch (err) {
-    console.warn("Не удалось загрузить облачный рейтинг", err);
-  }
-}
-
-async function pushCloudScore(entry) {
-  if (!settings.cloudEndpoint) return;
-  try {
-    await fetch(settings.cloudEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entry),
-    });
-  } catch (err) {
-    console.warn("Не удалось отправить результат в облако", err);
-  }
-}
-
-async function pushStatsToApi(entry) {
-  if (!settings.statsEndpoint) return;
-  try {
-    await fetch(settings.statsEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entry),
-    });
-  } catch (err) {
-    console.warn("Не удалось отправить статистику", err);
-  }
-}
-
-function mergeLeaderboards(local, remote) {
-  const map = new Map();
-  [...local, ...remote].forEach((row) => {
-    const key = `${row.name}-${row.size}-${row.seed}-${row.ts}`;
-    map.set(key, row);
-  });
-  return Array.from(map.values()).sort((a, b) => b.score - a.score).slice(0, 30);
-}
-
-function configureApi() {
-  const value = prompt(
-    "URL API рейтинга (GET вернет JSON-массив, POST принимает {name,score,size,seed,ts}). Например, endpoint вашего Supabase/Cloudflare Worker."
-  );
-  if (value !== null) {
-    settings.cloudEndpoint = value.trim();
-  }
-  const statsUrl = prompt(
-    "URL API статистики (POST принимает {name,score,size,seed,maxTile,streak,gamesPlayed,ts}). Это должен быть ваш сервер/функция с доступом к PostgreSQL."
-  );
-  if (statsUrl !== null) {
-    settings.statsEndpoint = statsUrl.trim();
-  }
-  saveStorage(storageKeys.settings, settings);
-  fetchCloudLeaderboard();
 }
 
 function bindControls() {
@@ -782,11 +683,12 @@ function bindControls() {
 
   qs("newGameBtn").addEventListener("click", () => startNewGame());
   qs("undoBtn").addEventListener("click", undoMove);
-  qs("dailyBtn").addEventListener("click", startDaily);
   qs("continueBtn").addEventListener("click", () => {
     game.over = false;
     game.won = false;
     hideStatusOverlay();
+    startTimer();
+    renderTimer();
   });
   qs("resetBtn").addEventListener("click", () => startNewGame());
   dom.sizeRange.addEventListener("input", (e) => {
@@ -806,7 +708,7 @@ function bindControls() {
   });
   dom.darkToggle.addEventListener("change", (e) => {
     settings.dark = e.target.checked;
-    document.body.classList.toggle("light", !settings.dark);
+    document.body.classList.toggle("dark", settings.dark);
     saveStorage(storageKeys.settings, settings);
   });
   dom.animToggle.addEventListener("change", (e) => {
@@ -820,13 +722,6 @@ function bindControls() {
   qs("submitScoreBtn").addEventListener("click", () => {
     addScoreToLeaderboard(dom.nickname.value.trim() || "Гость", game.score);
   });
-  qs("refreshLbBtn").addEventListener("click", () => {
-    renderLeaderboard();
-    fetchCloudLeaderboard();
-  });
-  qs("configureApiBtn").addEventListener("click", configureApi);
-  qs("exportBtn").addEventListener("click", exportLeaderboard);
-  qs("importBtn").addEventListener("click", importLeaderboard);
   qs("copyShareBtn").addEventListener("click", copyShareLink);
 }
 
@@ -844,14 +739,14 @@ function initFromURL(params = new URLSearchParams(window.location.search)) {
   applySettingsToUI();
   startNewGame({ size: settings.size, seed: seed || undefined });
   if (seed) {
-    qs("dailyInfo").textContent = `Игра по ссылке с семенем: ${seed}`;
+    qs("dailyInfo").textContent = "Свободная игра с текущим семенем.";
   }
 }
 
 function init() {
   setupDom();
   settings = { ...defaultSettings, ...loadStorage(storageKeys.settings, {}) };
-  if (!settings.statsEndpoint) settings.statsEndpoint = DEFAULT_STATS_ENDPOINT;
+  // Принудительно отключаем внешний сбор статистики для локального режима.
   stats = { ...defaultStats, ...loadStorage(storageKeys.stats, {}) };
   leaderboard = loadStorage(storageKeys.leaderboard, []);
   applySettingsToUI();
@@ -863,7 +758,6 @@ function init() {
   if (!restored) {
     initFromURL(params);
   }
-  fetchCloudLeaderboard();
   updateSummary();
   updateShareLink(game.seed);
 }
