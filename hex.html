@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foxin 2048 - HEX</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="mode-page">
+  <div class="app-shell">
+    <header class="hero">
+      <div class="hero-text">
+        <span class="pill">HEX MODE</span>
+        <h1>HEX 2048 (соты)</h1>
+        <p>Слияния по шести направлениям и более гибкие комбинации.</p>
+        <div class="cta-row">
+          <a class="btn ghost" href="index.html">На главную</a>
+          <button class="btn primary" id="hexNewBtn">Новая игра</button>
+          <button class="btn ghost" id="hexUndoBtn">Отменить</button>
+        </div>
+      </div>
+      <div class="hero-stats inline">
+        <div class="stat-card">
+          <p>Счет</p>
+          <div class="stat-value" id="hexScoreValue">0</div>
+        </div>
+        <div class="stat-card">
+          <p>Лучший</p>
+          <div class="stat-value" id="hexBestValue">0</div>
+        </div>
+        <div class="stat-card">
+          <p>Макс. тайл</p>
+          <div class="stat-value" id="hexMaxValue">0</div>
+        </div>
+        <div class="stat-card">
+          <p>Ходы</p>
+          <div class="stat-value" id="hexMovesValue">0</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="board-area">
+        <div class="top-bar">
+          <div class="control">
+            <label for="hexSizeRange">Размер поля: <span id="hexSizeLabel">R=2</span></label>
+            <input type="range" min="2" max="4" value="2" id="hexSizeRange">
+          </div>
+          <div class="control inline">
+            <label class="switch">
+              <input type="checkbox" id="hexAssistToggle" checked>
+              <span class="slider"></span>
+            </label>
+            <span>Показывать следующий тайл</span>
+          </div>
+          <div class="control inline">
+            <label class="switch">
+              <input type="checkbox" id="hexDarkToggle">
+              <span class="slider"></span>
+            </label>
+            <span>Темная тема</span>
+          </div>
+        </div>
+
+        <div class="board-wrapper">
+          <div class="hex-board-shell">
+            <div class="hex-board" id="hexBoard" aria-label="Hex board"></div>
+            <div class="status-layer">
+              <div class="status-card hidden" id="hexStatusCard">
+                <p class="status-title" id="hexStatusTitle"></p>
+                <p class="status-sub" id="hexStatusSub"></p>
+                <div class="status-actions">
+                  <button class="btn primary" id="hexContinueBtn">Продолжить</button>
+                  <button class="btn ghost" id="hexResetBtn">Новая игра</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="meta">
+          <div class="meta-card">
+            <p class="meta-label">Следующий тайл</p>
+            <div class="next-tile" id="hexNextTile">2</div>
+          </div>
+          <div class="meta-card">
+            <p class="meta-label">Управление</p>
+            <p class="tiny">W/Ц вверх, S/Ы вниз, A/Ф влево-вниз, D/В вправо-вниз, Q/Й влево-вверх, E/У вправо-вверх.</p>
+          </div>
+          <div class="meta-card">
+            <p class="meta-label">Цель</p>
+            <p class="tiny">Собрать 2048 и продолжать дальше.</p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-header">
+            <p class="overline">Прогресс</p>
+            <h3>Статистика</h3>
+          </div>
+          <ul class="summary" id="hexSummaryList"></ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <p class="overline">Навигация</p>
+            <h3>Карта клавиш</h3>
+          </div>
+          <div class="hex-keymap" aria-label="Схема направлений">
+            <div class="hex-key top">
+              W / Ц
+              <span class="hex-key-sub">Вверх</span>
+            </div>
+            <div class="hex-key top-left">
+              Q / Й
+              <span class="hex-key-sub">Влево-вверх</span>
+            </div>
+            <div class="hex-key top-right">
+              E / У
+              <span class="hex-key-sub">Вправо-вверх</span>
+            </div>
+            <div class="hex-key bottom-left">
+              A / Ф
+              <span class="hex-key-sub">Влево-вниз</span>
+            </div>
+            <div class="hex-key bottom-right">
+              D / В
+              <span class="hex-key-sub">Вправо-вниз</span>
+            </div>
+            <div class="hex-key bottom">
+              S / Ы
+              <span class="hex-key-sub">Вниз</span>
+            </div>
+            <div class="hex-key center">
+              HEX
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <p class="overline">Правила</p>
+            <h3>Как играть</h3>
+          </div>
+          <ul class="summary">
+            <li>Сдвиги по 6 направлениям вместо 4.</li>
+            <li>Слияние только одинаковых значений.</li>
+            <li>Новый тайл появляется после каждого хода.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="hex.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foxin 2048 - Tetris</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="mode-page">
+  <div class="app-shell">
+    <header class="hero">
+      <div class="hero-text">
+        <span class="pill">2048 TETRIS</span>
+        <h1>2048 Tetris</h1>
+        <p>Тетрамино падают, значения объединяются по вертикали.</p>
+        <div class="cta-row">
+          <a class="btn ghost" href="index.html">На главную</a>
+          <button class="btn primary" id="tetrisNewBtn">Новая игра</button>
+          <button class="btn ghost" id="tetrisPauseBtn">Пауза</button>
+        </div>
+      </div>
+      <div class="hero-stats inline">
+        <div class="stat-card">
+          <p>Счет</p>
+          <div class="stat-value" id="tetrisScoreValue">0</div>
+        </div>
+        <div class="stat-card">
+          <p>Лучший</p>
+          <div class="stat-value" id="tetrisBestValue">0</div>
+        </div>
+        <div class="stat-card">
+          <p>Макс. тайл</p>
+          <div class="stat-value" id="tetrisMaxValue">0</div>
+        </div>
+        <div class="stat-card">
+          <p>Линии</p>
+          <div class="stat-value" id="tetrisLinesValue">0</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="board-area">
+        <div class="top-bar">
+          <div class="control inline">
+            <label class="switch">
+              <input type="checkbox" id="tetrisDarkToggle">
+              <span class="slider"></span>
+            </label>
+            <span>Темная тема</span>
+          </div>
+          <div class="control">
+            <label>Следующий</label>
+            <div class="next-tile" id="tetrisNextValue">2</div>
+            <p class="tiny" id="tetrisNextShape">Фигура: I</p>
+          </div>
+        </div>
+
+        <div class="board-wrapper">
+          <div class="tetris-board-shell">
+            <div class="tetris-board" id="tetrisBoard" aria-label="Tetris board"></div>
+            <div class="status-layer">
+              <div class="status-card hidden" id="tetrisStatusCard">
+                <p class="status-title" id="tetrisStatusTitle"></p>
+                <p class="status-sub" id="tetrisStatusSub"></p>
+                <div class="status-actions">
+                  <button class="btn primary" id="tetrisRestartBtn">Новая игра</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="meta">
+          <div class="meta-card">
+            <p class="meta-label">Управление</p>
+            <p class="tiny">Стрелки: движение/поворот, Space: сброс, P: пауза.</p>
+          </div>
+          <div class="meta-card">
+            <p class="meta-label">Слияния</p>
+            <p class="tiny">Одинаковые значения объединяются при падении.</p>
+          </div>
+          <div class="meta-card">
+            <p class="meta-label">Линии</p>
+            <p class="tiny">Полные ряды очищаются и дают бонус.</p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-header">
+            <p class="overline">Прогресс</p>
+            <h3>Статистика</h3>
+          </div>
+          <ul class="summary" id="tetrisSummaryList"></ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <p class="overline">Правила</p>
+            <h3>Как играть</h3>
+          </div>
+          <ul class="summary">
+            <li>Тетрамино падают сверху как в классике.</li>
+            <li>При приземлении числа объединяются по вертикали.</li>
+            <li>Заполненные линии очищаются и дают очки.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="tetris.js"></script>
+</body>
+</html>

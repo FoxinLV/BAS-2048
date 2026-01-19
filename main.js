@@ -393,6 +393,10 @@ function setupDom() {
   dom.leaderboard = qs("leaderboard");
   dom.summaryList = qs("summaryList");
   dom.shareLink = qs("shareLink");
+  dom.hexBestScore = qs("hexBestScore");
+  dom.hexBestTile = qs("hexBestTile");
+  dom.tetrisBestScore = qs("tetrisBestScore");
+  dom.tetrisBestTile = qs("tetrisBestTile");
 }
 
 function renderGrid(size) {
@@ -462,6 +466,16 @@ function updateSummary() {
     `Максимальная серия побед: ${stats.maxStreak}`,
   ];
   dom.summaryList.innerHTML = items.map((i) => `<li>${i}</li>`).join("");
+}
+
+function updateModeStats() {
+  const hexStats = loadStorage("bas2048-hex-stats", null);
+  if (dom.hexBestScore) dom.hexBestScore.textContent = hexStats?.bestScore ?? 0;
+  if (dom.hexBestTile) dom.hexBestTile.textContent = hexStats?.bestTile ?? 0;
+
+  const tetrisStats = loadStorage("bas2048-tetris-stats", null);
+  if (dom.tetrisBestScore) dom.tetrisBestScore.textContent = tetrisStats?.bestScore ?? 0;
+  if (dom.tetrisBestTile) dom.tetrisBestTile.textContent = tetrisStats?.bestTile ?? 0;
 }
 
 function updateStatusOverlay({ title, sub }) {
@@ -760,6 +774,8 @@ function init() {
   }
   updateSummary();
   updateShareLink(game.seed);
+  updateModeStats();
+  window.addEventListener("focus", updateModeStats);
 }
 
 document.addEventListener("DOMContentLoaded", init);
