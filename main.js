@@ -660,6 +660,16 @@ function renderLeaderboard() {
 
 function bindControls() {
   document.addEventListener("keydown", (e) => {
+    const target = e.target;
+    if (
+      target &&
+      (target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable)
+    ) {
+      return;
+    }
     const map = {
       ArrowUp: "up",
       ArrowDown: "down",
@@ -670,9 +680,10 @@ function bindControls() {
       a: "left",
       d: "right",
     };
-    if (map[e.key]) {
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (map[key]) {
       e.preventDefault();
-      handleMove(map[e.key]);
+      handleMove(map[key]);
     }
   });
 
