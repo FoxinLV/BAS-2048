@@ -679,6 +679,10 @@ function bindControls() {
       s: "down",
       a: "left",
       d: "right",
+      "ц": "up",
+      "ы": "down",
+      "ф": "left",
+      "в": "right",
     };
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     if (map[key]) {
