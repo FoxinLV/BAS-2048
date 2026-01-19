@@ -62,6 +62,49 @@ body.dark {
   margin-bottom: 16px;
 }
 
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.04);
+  transition: background 120ms ease, transform 120ms ease, border-color 120ms ease;
+}
+
+.nav-link:hover {
+  transform: translateY(-1px);
+}
+
+.nav-link.active {
+  background: var(--accent);
+  color: #f9f6f2;
+  border-color: transparent;
+}
+
 .hero h1 {
   font-size: clamp(28px, 3vw, 38px);
   margin: 10px 0 8px;
@@ -752,6 +795,15 @@ body.dark .tetris-cell {
 }
 
 @media (max-width: 720px) {
+  .top-nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    width: 100%;
+  }
+
   .hero {
     grid-template-columns: 1fr;
   }
