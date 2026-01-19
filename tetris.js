@@ -17,6 +17,7 @@ const defaultSettings = {
 const rows = 16;
 const cols = 10;
 const dropIntervalMs = 700;
+const clearFloor = 8;
 
 const shapes = [
   { name: "I", cells: [[0, 1], [1, 1], [2, 1], [3, 1]] },
@@ -60,7 +61,10 @@ function rotateCells(cells) {
 }
 
 function randomValue() {
-  return Math.random() < 0.9 ? 2 : 4;
+  const roll = Math.random();
+  if (roll < 0.7) return 2;
+  if (roll < 0.9) return 4;
+  return 8;
 }
 
 function createPiece() {
@@ -142,7 +146,7 @@ function applyMergeAndGravity() {
 function clearLines() {
   let cleared = 0;
   for (let r = rows - 1; r >= 0; r -= 1) {
-    if (grid[r].every((value) => value)) {
+    if (grid[r].every((value) => value && value >= clearFloor)) {
       grid.splice(r, 1);
       grid.unshift(Array.from({ length: cols }, () => null));
       cleared += 1;
